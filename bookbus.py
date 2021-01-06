@@ -2,13 +2,16 @@ import requests as rq
 import json
 import datetime
 import sys
-
+import decrypt as Crypt
 username = "xxxx"
 password = "xxxxxx"
 url = 'http://159.226.95.123/dataForward'
+key = '0102030405060708'
 
 def Login(user, pwd):
     data = {"idserial":user,"password":pwd,"method":"/mobile/login/userLoginCheck"}
+    cipher_data = Crypt.aes_encode(key, json.dumps(data).replace(' ', '')).upper()
+    data = {"item":cipher_data}
     r = rq.post(url, json=data)
     #print(r.text)
     if r.status_code == 200:
@@ -21,20 +24,26 @@ def Login(user, pwd):
         return None
 
 def Logout(token):
-    header = {"X-Token":token}
+    cipher_token = Crypt.aes_encode(key, token).upper()
+    header = {"X-Token":cipher_token}
     data = {"method":"/mobile/login/mobileLogout"}
+    cipher_data = Crypt.aes_encode(key, json.dumps(data).replace(' ', '')).upper()
+    data = {"item":cipher_data}
     r = rq.post(url, headers=header, json=data)
     #print(r.text)
     if r.status_code == 200:
-        print(r.json()['msg'])
+        print(r.json()['data'])
         return None
     else:
         print("查询错误")
         return None
 
 def QueryBus(token, date):
-    header = {"X-Token":token}
-    data = {"selldate":date,"method":"/mobile/home/queryHomeGoods"}
+    cipher_token = Crypt.aes_encode(key, token).upper()
+    header = {"X-Token":cipher_token}
+    data = {"selldate":date,"enddate":date,"method":"/mobile/home/queryHomeGoods"}
+    cipher_data = Crypt.aes_encode(key, json.dumps(data).replace(' ', '')).upper()
+    data = {"item":cipher_data}
     r = rq.post(url, headers=header, json=data)
     #print(r.text)
     if r.status_code == 200:
@@ -54,8 +63,11 @@ def FindBusId(buslist, busname): # busname: 时间发站-到站，例如 20:30�
     return None
 
 def Book(token, date, busid, busname):
-    header = {"X-Token":token}
+    cipher_token = Crypt.aes_encode(key, token).upper()
+    header = {"X-Token":cipher_token}
     data = {"selldate":date,"id":busid,"method":"/mobile/pay/toPaySelf"}
+    cipher_data = Crypt.aes_encode(key, json.dumps(data).replace(' ', '')).upper()
+    data = {"item":cipher_data}
     r = rq.post(url, headers=header, json=data)
     #print(r.text)
     if r.status_code == 200:
